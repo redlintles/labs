@@ -3,6 +3,12 @@
   hosts: all
   become: true
 
+  handlers:
+  - name: restart_rsyslog
+    ansible.builtin.service:
+      name: rsyslog
+      state: restarted
+
   tasks:
     - name: "Update cache"
       ansible.builtin.dnf:
@@ -22,3 +28,21 @@
           - prometheus
           - rsyslog
         state: present
+
+    - name: copy rsyslog server config
+      ansible.builtin.copy:
+        dest: /etc/rsyslog.d/10-remote-server.conf
+        src: config/rsyslog-server.conf
+        owner: root
+        group: root
+        mode: 0644
+      notify: restart_rsyslog
+    - name: Ensure rsyslog is running
+      ansible.builtin.systemd_service:
+        - name: rsyslog
+          state: started
+          enable: true
+
+
+
+

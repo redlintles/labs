@@ -2,7 +2,12 @@
 - name: "Configure Server"
   hosts: all
   become: true
-
+  
+  handlers:
+  - name: restart_rsyslog
+    ansible.builtin.service:
+      name: rsyslog
+      state: restarted
   tasks:
     - name: "Update cache"
       ansible.builtin.dnf:
@@ -21,3 +26,24 @@
           - iperf3
 
         state: present
+
+    - name: "start nginx"
+      ansible.builtin.systemd_service:
+        - name: "nginx"
+          state: started
+          enable: true
+
+        - name: Configure remote logging
+      ansible.builtin.copy:
+        dest: /etc/rsyslog.d/10-forward.conf
+        src: config/rsyslog-client.conf
+        owner: root
+        group: root
+        mode: 0644
+      notify: restart_rsyslog
+
+    - name: Ensure remote logging is running
+      ansible.builtin.systemd_service:
+        - name: rsyslog
+          state: started
+          enable: true
