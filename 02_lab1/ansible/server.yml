@@ -2,12 +2,16 @@
 - name: "Configure Server"
   hosts: all
   become: true
-  
+
   handlers:
-  - name: restart_rsyslog
-    ansible.builtin.service:
-      name: rsyslog
-      state: restarted
+    - name: restart_rsyslog
+      ansible.builtin.service:
+        name: rsyslog
+        state: restarted
+    - name: restart_nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
   tasks:
     - name: "Update cache"
       ansible.builtin.dnf:
@@ -24,19 +28,15 @@
           - postfix
           - tcpdump
           - iperf3
+          - firewalld
+          - python3-firewall
 
         state: present
 
-    - name: "start nginx"
-      ansible.builtin.systemd_service:
-        - name: "nginx"
-          state: started
-          enable: true
-
-        - name: Configure remote logging
+    - name: Configure remote logging
       ansible.builtin.copy:
         dest: /etc/rsyslog.d/10-forward.conf
-        src: config/rsyslog-client.conf
+        src: files/config/rsyslog-client.conf
         owner: root
         group: root
         mode: 0644
@@ -44,6 +44,34 @@
 
     - name: Ensure remote logging is running
       ansible.builtin.systemd_service:
-        - name: rsyslog
-          state: started
-          enable: true
+        name: rsyslog
+        state: started
+        enabled: true
+
+    - name: Configure nginx
+      ansible.builtin.copy:
+        dest: /usr/share/nginx/html/index.html
+        src: files/index.html
+        mode: 0644
+        owner: root
+        group: root
+      notify: restart_nginx
+
+    - name: "start nginx"
+      ansible.builtin.systemd_service:
+        name: "nginx"
+        state: started
+        enabled: true
+
+    - name: Ensure firewalld is running
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Allow HTTP Port
+      ansible.posix.firewalld:
+        port: 80/tcp
+        permanent: true
+        immediate: true
+        state: enabled

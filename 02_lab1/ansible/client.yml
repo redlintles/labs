@@ -4,10 +4,10 @@
   become: true
 
   handlers:
-  - name: restart_rsyslog
-    ansible.builtin.service:
-      name: rsyslog
-      state: restarted
+    - name: restart_rsyslog
+      ansible.builtin.service:
+        name: rsyslog
+        state: restarted
 
   tasks:
     - name: "Update cache"
@@ -29,7 +29,7 @@
     - name: Configure remote logging
       ansible.builtin.copy:
         dest: /etc/rsyslog.d/10-forward.conf
-        src: config/rsyslog-client.conf
+        src: files/config/rsyslog-client.conf
         owner: root
         group: root
         mode: 0644
@@ -37,6 +37,6 @@
 
     - name: Ensure remote logging is running
       ansible.builtin.systemd_service:
-        - name: rsyslog
-          state: started
-          enable: true
+        name: rsyslog
+        state: started
+        enabled: true

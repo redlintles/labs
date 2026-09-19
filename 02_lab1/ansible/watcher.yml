@@ -4,10 +4,10 @@
   become: true
 
   handlers:
-  - name: restart_rsyslog
-    ansible.builtin.service:
-      name: rsyslog
-      state: restarted
+    - name: restart_rsyslog
+      ansible.builtin.service:
+        name: rsyslog
+        state: restarted
 
   tasks:
     - name: "Update cache"
@@ -27,22 +27,32 @@
           - iputils
           - prometheus
           - rsyslog
+          - firewalld
+          - python3-firewall
         state: present
 
     - name: copy rsyslog server config
       ansible.builtin.copy:
         dest: /etc/rsyslog.d/10-remote-server.conf
-        src: config/rsyslog-server.conf
+        src: files/config/rsyslog-server.conf
         owner: root
         group: root
         mode: 0644
       notify: restart_rsyslog
     - name: Ensure rsyslog is running
       ansible.builtin.systemd_service:
-        - name: rsyslog
-          state: started
-          enable: true
+        name: rsyslog
+        state: started
+        enabled: true
 
-
-
-
+    - name: Ensure firewalld is running
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+    - name: Allow rsyslog TCP port
+      ansible.posix.firewalld:
+        port: 514/tcp
+        permanent: true
+        immediate: true
+        state: enabled
