@@ -1,0 +1,22 @@
+---
+- name: "Configure Client"
+  hosts: all
+  become: true
+
+  tasks:
+    - name: "Update cache"
+      ansible.builtin.dnf:
+        update_cache: true
+
+    - name: "config"
+      ansible.builtin.dnf:
+        name:
+          - curl
+          - nmap
+          - iputils
+          - rsyslog
+          - iperf3
+          - traceroute
+          - httpd-tools
+          - tcpdump
+        state: present

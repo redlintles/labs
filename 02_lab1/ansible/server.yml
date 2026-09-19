@@ -1,0 +1,23 @@
+---
+- name: "Configure Server"
+  hosts: all
+  become: true
+
+  tasks:
+    - name: "Update cache"
+      ansible.builtin.dnf:
+        update_cache: true
+
+    - name: "config"
+      ansible.builtin.dnf:
+        name:
+          - curl
+          - nmap
+          - iputils
+          - rsyslog
+          - nginx
+          - postfix
+          - tcpdump
+          - iperf3
+
+        state: present

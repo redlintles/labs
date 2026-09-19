@@ -1,0 +1,32 @@
+---
+- name: Configurar Servidor Web
+  hosts: all
+  become: true
+
+  tasks:
+
+    - name: Atualizar cache dos repositorios
+      ansible.builtin.dnf:
+        update_cache: true
+
+    - name: Instalar nginx
+      ansible.builtin.dnf:
+        name: nginx
+        state: present
+
+    - name: Criar pagina de teste
+      ansible.builtin.copy:
+        dest: /usr/share/nginx/html/index.html
+        content: |
+          <html>
+            <body>
+              <h1>Servidor funcionando!</h1>
+              <p>Vagrant + KVM + Ansible + AlmaLinux + Nginx</p>
+            </body>
+          </html>
+
+    - name: Iniciar nginx
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
