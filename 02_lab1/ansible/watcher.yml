@@ -10,6 +10,9 @@
         state: restarted
 
   tasks:
+    - name: Set timezone to Brasilia
+      community.general.timezone:
+        name: America/Sao_Paulo
     - name: "Update cache"
       ansible.builtin.dnf:
         update_cache: true
@@ -56,3 +59,5 @@
         permanent: true
         immediate: true
         state: enabled
+    - name: Apply pending handlers
+      ansible.builtin.meta: flush_handlers
